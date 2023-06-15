@@ -1,17 +1,29 @@
 <?php
 
-use Carbon\Carbon;
-use App\Models\Proposal;
 use Illuminate\Support\Str;
-use App\Models\ProposalItem;
-use App\Models\StatusProposalFinal;
+use Illuminate\Support\Carbon;
+use App\Models\IndonesianHoliday;
+
+if (! function_exists('rejectedAndCancelOnly')) {
+    function rejectedAndCancelOnly() {
+		$status = ['REJECTED', 'CANCELED'];
+        return $status;
+    }
+}
+
+if (! function_exists('excludeStatusOnLeftMenuCount')) {
+    function excludeStatusOnLeftMenuCount() {
+		$status = ['REJECTED', 'FORWARD TO OTHER FUNCTION', 'DONE', 'CANCELED'];
+        return $status;
+    }
+}
 
 if (! function_exists('rejectedStatus')) {
     function rejectedStatus() {
 		$rejectedStatus = [
 			"REJECTED - Timeline less than 45 days",
 			"REJECTED",
-			"CANCEL",
+			"CANCELED",
 			"REJECTED - Unsuitable brand"
 		];
         return $rejectedStatus;
@@ -143,13 +155,13 @@ if (! function_exists('indonesianFullDayAndDate')) {
     }
 }
 
-if (! function_exists('customName')) {
-    function customName($name = null) {
+if (! function_exists('rejectionLetterName')) {
+    function rejectionLetterName($name = null) {
 		$timestamp = now()->format("Y-m-d");
 		if(is_null($name)) {
-			$output = slugTitle(Carbon::parse($timestamp)->isoFormat('dddd, D MMMM Y')." ".now()->format("h:i:s"));
+			$output = slugTitle("confirmation-letter");
 		} else {
-			$output = slugTitle($name."-".Carbon::parse($timestamp)->isoFormat('dddd, D MMMM Y')." ".now()->format("h:i:s"));
+			$output = slugTitle("confirmation-letter-".$name);
 		}
 		return $output;//Rabu, 24 Mei 2023 09:40:21
     }
@@ -250,4 +262,146 @@ if (! function_exists('countDays')) {
     function countDays($start, $end) {
         return Carbon::parse($end)->diffInDays($start) + 1;
     }
+}
+
+if (! function_exists('date_range')) {
+	function date_range(Carbon\Carbon $from, Carbon\Carbon $to, $inclusive = true) {
+		if ($from->gt($to)) {
+			return null;
+		}
+
+		// Clone the date objects to avoid issues, then reset their time
+		$from = $from->copy()->startOfDay();
+		$to = $to->copy()->startOfDay();
+
+		// Include the end date in the range
+		if ($inclusive) {
+			$to->addDay();
+		}
+
+		$step = Carbon\CarbonInterval::day();
+		$period = new DatePeriod($from, $step, $to);
+
+		// Convert the DatePeriod into a plain array of Carbon objects
+		$range = [];
+
+		foreach ($period as $day) {
+			$range[] = new Carbon\Carbon($day);
+		}
+
+		return ! empty($range) ? $range : null;
+	}
+}
+
+if (! function_exists('getWorkingDays')) {
+	function getWorkingDays($startdate, $buisnessdays, $holidays, $dateformat="Y-m-d") {
+		$i=1;
+		$dayx = strtotime($startdate);
+		while($i < $buisnessdays) {
+			$day = date('N', $dayx);
+			$date = date('Y-m-d', $dayx);
+			if($day < 6 && !in_array($date, $holidays))$i++;
+			$dayx = strtotime($date.' +1 day');
+		}
+		return date($dateformat,$dayx);
+	}
+}
+
+if (! function_exists('removeZeroChar')) {
+	function removeZeroChar($value) {
+		if(strlen((string)$value) == 2) {
+			$str = ltrim($value, '0');
+			return $str;
+		} else {
+			return $value;
+		}
+	}
+}
+
+if (! function_exists('createDailyInput')) {
+	function createDailyInput($id) {
+		$proposalItem = ProposalItem::with('proposal')->findOrFail($id);
+
+		$awal = $proposalItem->proposal->tanggal_diproses;
+		$akhir = $proposalItem->proposal->deadline_sop;
+
+		$d_start = removeZeroChar(Carbon::parse($awal)->format("d"));
+		$m_start = removeZeroChar(Carbon::parse($awal)->format("m"));
+		$y_start = Carbon::parse($awal)->format("Y");
+
+		$d_end = removeZeroChar(Carbon::parse($akhir)->format("d"));
+		$m_end = removeZeroChar(Carbon::parse($akhir)->format("m"));
+		$y_end = Carbon::parse($akhir)->format("Y");
+
+		$start = Carbon::now()->setDate($y_start, $m_start, $d_start);
+		$end = Carbon::now()->setDate($y_end, $m_end, $d_end);
+
+		$holidays = [];
+		$pullDate = [];
+
+		$days = $start->diffInDaysFiltered(function (Carbon $date) use ($holidays, $pullDate, $id) {
+			if($date->isWeekday() && !in_array($date->format("Y-m-d"), $holidays)) {
+				// array_push($pullDate, $date->format("Y-m-d"));
+				DailyProgress::create([
+					'proposal_item_id' => $id,
+					'day' => $date->format("Y-m-d"),
+					'note' => '-'
+				]);
+			}
+
+			return $date->isWeekday() && !in_array($date, $holidays);
+
+		}, $end);
+
+		return $days;
+	}
+}
+
+if (! function_exists('moneyFormat')) {
+	function moneyFormat($val, $sym=null) {
+		$regex = "/\B(?=(\d{3})+(?!\d))/i";
+		if(is_null($sym)) {
+			$rupiah = preg_replace($regex, ",", $val);
+		} else {
+			$rupiah = $sym . preg_replace($regex, ",", $val);
+		}
+
+		return $rupiah;
+	}
+}
+
+if (! function_exists('removeAlphaChar')) {
+	function removeAlphaChar($string) {
+		return preg_replace('/[^0-9]/', '', $string);
+	}
+}
+
+if (! function_exists('addDaysWithoutWeeks')) {
+	function addDaysWithoutWeeks($dateTimeString='', $days=0) {
+		$date = Carbon::createFromFormat('Y-m-d', $dateTimeString, 'Asia/Jakarta');
+		return $date->addWeekdays($days)->format("Y-m-d");
+	}
+}
+
+if (! function_exists('addDaysWithoutWeeksAndHolidays')) {
+	function addDaysWithoutWeeksAndHolidays($date, $count=0) {
+		// https://raviyatechnical.medium.com/laravel-carbon-add-number-of-days-excluding-weekends-and-custom-dates-33546c4cdff8
+
+		$holidays = IndonesianHoliday::select('tanggal')->get();
+		$arr_holiday = [];
+		foreach($holidays as $holiday) {
+			array_push($arr_holiday, $holiday->tanggal);
+		}
+
+        $MyDateCarbon = Carbon::parse($date);
+        $MyDateCarbon->addWeekdays($count);
+
+        for ($i = 1; $i <= $count; $i++) {
+            if (in_array(Carbon::parse($date)->format("Y-m-d"), $arr_holiday)) {
+                $MyDateCarbon->addDay();
+            }
+        }
+
+        return $MyDateCarbon->format("d-m-Y");
+	}
 }
