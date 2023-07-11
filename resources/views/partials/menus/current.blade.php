@@ -2,7 +2,7 @@
 	<!--begin::Menu Nav-->
 	<ul class="menu-nav">
 		<li class="menu-item" aria-haspopup="true">
-			<a href="index.html" class="menu-link">
+			<a href="{{ route('home') }}" class="menu-link">
 				<i class="menu-icon flaticon-home"></i>
 				<span class="menu-text">Dashboard</span>
 			</a>
@@ -22,7 +22,7 @@
 						</span>
 					</li>
 					<li class="menu-item" aria-haspopup="true">
-						<a href="layout/general/fluid-content.html" class="menu-link">
+						<a href="{{ route('home') }}" class="menu-link">
 							<i class="menu-bullet menu-bullet-dot">
 								<span></span>
 							</i>
@@ -30,7 +30,7 @@
 						</a>
 					</li>
 					<li class="menu-item" aria-haspopup="true">
-						<a href="layout/general/minimized-aside.html" class="menu-link">
+						<a href="{{ route('home') }}" class="menu-link">
 							<i class="menu-bullet menu-bullet-dot">
 								<span></span>
 							</i>
@@ -38,7 +38,7 @@
 						</a>
 					</li>
 					<li class="menu-item" aria-haspopup="true">
-						<a href="layout/general/no-aside.html" class="menu-link">
+						<a href="{{ route('home') }}" class="menu-link">
 							<i class="menu-bullet menu-bullet-dot">
 								<span></span>
 							</i>
@@ -46,7 +46,7 @@
 						</a>
 					</li>
 					<li class="menu-item menu-item-active" aria-haspopup="true">
-						<a href="layout/general/empty-page.html" class="menu-link">
+						<a href="{{ route('home') }}" class="menu-link">
 							<i class="menu-bullet menu-bullet-dot">
 								<span></span>
 							</i>
@@ -54,7 +54,7 @@
 						</a>
 					</li>
 					<li class="menu-item" aria-haspopup="true">
-						<a href="layout/general/fixed-footer.html" class="menu-link">
+						<a href="{{ route('home') }}" class="menu-link">
 							<i class="menu-bullet menu-bullet-dot">
 								<span></span>
 							</i>
@@ -62,7 +62,7 @@
 						</a>
 					</li>
 					<li class="menu-item" aria-haspopup="true">
-						<a href="layout/general/no-header-menu.html" class="menu-link">
+						<a href="{{ route('home') }}" class="menu-link">
 							<i class="menu-bullet menu-bullet-dot">
 								<span></span>
 							</i>
