@@ -4,6 +4,12 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use App\Models\IndonesianHoliday;
 
+if (! function_exists('standartDate')) {
+    function standartDate($timestamp) {
+        return Carbon::parse($timestamp)->format('Y-m-d');
+    }
+}
+
 if (! function_exists('rejectedAndCancelOnly')) {
     function rejectedAndCancelOnly() {
 		$status = ['REJECTED', 'CANCELED'];
